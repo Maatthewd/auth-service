@@ -5,15 +5,13 @@ import com.example.auth_service.domain.exception.WrongCredentialsException;
 import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.*;
 import com.example.auth_service.domain.exception.UsernameAlreadyExistsException;
-import com.example.auth_service.dto.response.AuthResponse;
-import com.example.auth_service.dto.response.RefreshTokenResponse;
-import com.example.auth_service.dto.response.NewRefreshTokenResponse;
-import com.example.auth_service.dto.response.UserResponse;
+import com.example.auth_service.dto.response.*;
 import com.example.auth_service.mapper.UserResponseMapper;
 import com.example.auth_service.repository.AuthRepository;
 import com.example.auth_service.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -103,6 +101,10 @@ public class AuthService implements IAuthService {
         return new NewRefreshTokenResponse(newAccessToken, newRefreshToken.refreshToken(), newRefreshToken.refreshTokenExpiry());
     }
 
+    @Override
+    public MeResponse getMe(Authentication auth) {
+        return null;
+    }
 
     @Override
     public List<UserResponse> allUsers() {
