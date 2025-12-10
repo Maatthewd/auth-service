@@ -4,12 +4,11 @@ import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.response.UserResponse;
 import org.springframework.stereotype.Component;
 
-import java.sql.SQLOutput;
 
 @Component
 public class UserResponseMapper {
 
-    public UserResponse toUserResponse(User user) {
+    public static UserResponse toUserResponse(User user) {
 
         return new UserResponse(
                         user.getId(),
@@ -19,7 +18,6 @@ public class UserResponseMapper {
                         user.getCreatedAt(),
                         user.getUpdatedAt()
                 );
-
 
     }
 }

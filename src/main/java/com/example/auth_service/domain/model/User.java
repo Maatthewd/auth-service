@@ -40,6 +40,9 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
+    @Column(nullable = true, unique = true)
+    private String refreshToken;
+
     @Column(nullable = false)
     private boolean enabled;
 
@@ -50,6 +53,11 @@ public class User implements UserDetails {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+
+
+
+    // UserDetails methods
 
 
     @Override

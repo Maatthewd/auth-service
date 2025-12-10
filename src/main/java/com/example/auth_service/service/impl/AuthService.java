@@ -1,16 +1,19 @@
 package com.example.auth_service.service.impl;
 
+import com.example.auth_service.domain.exception.InvalidTokenException;
+import com.example.auth_service.domain.exception.UserNotFoundException;
 import com.example.auth_service.domain.exception.WrongCredentialsException;
 import com.example.auth_service.domain.model.User;
-import com.example.auth_service.dto.request.LoginRequest;
-import com.example.auth_service.dto.request.RegisterRequest;
+import com.example.auth_service.dto.request.*;
 import com.example.auth_service.domain.exception.UsernameAlreadyExistsException;
 import com.example.auth_service.dto.response.AuthResponse;
+import com.example.auth_service.dto.response.UserResponse;
+import com.example.auth_service.mapper.UserResponseMapper;
 import com.example.auth_service.repository.AuthRepository;
+import com.example.auth_service.repository.RefreshTokenRepository;
 import com.example.auth_service.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,18 +58,56 @@ public class AuthService implements IAuthService {
                 user.getPassword()
         );
 
-        String token = jwtService.generateToken(
+        UserRequest userRequest = new UserRequest(
                 user.getUsername(),
                 user.getRoles()
         );
 
-        return new AuthResponse(token);
 
+        String accessToken = jwtService.generateAccessToken(userRequest);
+        String refreshToken = jwtService.generateRefreshToken(userRequest);
+
+        user.setRefreshToken(refreshToken);
+        authRepository.save(user);
+
+        return new AuthResponse(accessToken, refreshToken);
+
+    }
+
+    @Override
+    public AuthResponse refreshToken(RefreshTokenRequest request) {
+
+        String refreshToken = request.refreshToken();
+
+        if(!jwtService.isTokenValid(new TokenRequest(refreshToken))) {
+            throw new InvalidTokenException("Refresh token invalido");
+        }
+
+        String username = jwtService.extractUsername(new TokenRequest(refreshToken));
+        User user = authRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+
+        UserRequest userRequest = new UserRequest(
+                user.getUsername(),
+                user.getRoles()
+        );
+
+        String newAccessToken = jwtService.generateAccessToken(userRequest);
+        String newRequestToken = jwtService.generateRefreshToken(userRequest);
+
+        user.setRefreshToken(refreshToken);
+        authRepository.save(user);
+
+        return new AuthResponse(newAccessToken, newRequestToken);
     }
 
 
     @Override
-    public List<User> allUsers() {
-        return authRepository.findAll();
+    public List<UserResponse> allUsers() {
+        return authRepository
+                .findAll()
+                .stream()
+                .map(UserResponseMapper::toUserResponse)
+                .toList();
     }
 }

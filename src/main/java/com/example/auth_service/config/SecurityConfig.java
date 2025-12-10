@@ -2,6 +2,8 @@ package com.example.auth_service.config;
 
 import com.example.auth_service.domain.model.Authority;
 import com.example.auth_service.security.JWTAuthenticationFilter;
+import com.example.auth_service.security.JwtAuthenticationEntryPoint;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
@@ -24,35 +29,36 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-            // CSRF deshabilitado (API REST + Postman)
-            .csrf(csrf -> csrf.disable())
+                // CSRF deshabilitado (API REST + Postman)
+                .csrf(csrf -> csrf.disable())
 
-            // Deshabilitamos auth legacy
-            .formLogin(form -> form.disable())
-            .httpBasic(basic -> basic.disable())
+                // Deshabilitamos auth legacy
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
 
-            // Stateless (JWT-ready)
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-
-            // Autorizaciones
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-                .anyRequest().authenticated()
-            )
-
-            // JWT Filter (NO bloquea si no hay token)
-            .addFilterBefore(
-                    jwtFilter,
-                    UsernamePasswordAuthenticationFilter.class
+                // Stateless (JWT-ready)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-            // Necesario para H2 Console (iframes)
-            .headers(headers ->
-                headers.frameOptions(frame -> frame.disable())
-            );
+                // Autorizaciones
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+
+                // Necesario para H2 Console (iframes)
+                .headers(headers ->
+                        headers.frameOptions(frame -> frame.disable())
+                )
+
+                // JWT Filter (NO bloquea si no hay token)
+                .addFilterBefore(
+                        jwtFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
+
 
         return http.build();
     }

@@ -1,7 +1,6 @@
 package com.example.auth_service.exception;
 
-import com.example.auth_service.domain.exception.UsernameAlreadyExistsException;
-import com.example.auth_service.domain.exception.WrongCredentialsException;
+import com.example.auth_service.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -35,6 +34,40 @@ public class GlobalExceptionHandler {
                 .body(toApiError(
                         HttpStatus.UNAUTHORIZED,
                         "InvalidCredentials",
+                        e.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiError> invalidTokenException (InvalidTokenException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(toApiError(
+                        HttpStatus.UNAUTHORIZED,
+                        "InvalidToken",
+                        e.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiError> userNotFoundException (UserNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(toApiError(
+                        HttpStatus.NOT_FOUND,
+                        "NotFound",
+                        e.getMessage()
+                ));
+    }
+
+
+    @ExceptionHandler(InvalidJwtTokenException.class)
+    public ResponseEntity<ApiError> invalidJwtTokenException (InvalidJwtTokenException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(toApiError(
+                        HttpStatus.UNAUTHORIZED,
+                        "InvalidToken",
                         e.getMessage()
                 ));
     }

@@ -14,4 +14,6 @@ public interface AuthRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u JOIN u.roles r WHERE r = :role")
     boolean existsByRole(@Param("role") Role role);
+
+
 }

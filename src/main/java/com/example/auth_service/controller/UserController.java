@@ -2,10 +2,12 @@ package com.example.auth_service.controller;
 
 
 import com.example.auth_service.domain.model.User;
+import com.example.auth_service.dto.request.UserRequest;
 import com.example.auth_service.dto.response.UserResponse;
 import com.example.auth_service.mapper.UserResponseMapper;
 import com.example.auth_service.service.impl.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,9 +27,10 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('READ_USERS')")
     @GetMapping("/users")
-    public List<UserResponse> allUsers() {
-        return authService.allUsers().stream()
-                .map(userResponseMapper::toUserResponse)
-                .toList();
+    public ResponseEntity<List<UserResponse>> allUsers() {
+
+        List<UserResponse> response = authService.allUsers();
+        return ResponseEntity.ok(response);
+
     }
 }
