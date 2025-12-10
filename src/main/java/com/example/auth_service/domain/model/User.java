@@ -59,8 +59,6 @@ public class User implements UserDetails {
     private LocalDateTime updatedAt;
 
 
-
-
     // UserDetails methods
 
 

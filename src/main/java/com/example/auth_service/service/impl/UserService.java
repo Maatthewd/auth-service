@@ -8,7 +8,9 @@ import com.example.auth_service.repository.AuthRepository;
 import com.example.auth_service.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
 
+@Service
 public class UserService implements IUserService {
 
     @Autowired
