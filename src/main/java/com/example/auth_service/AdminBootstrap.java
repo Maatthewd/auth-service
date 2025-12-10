@@ -24,13 +24,13 @@ public class AdminBootstrap implements CommandLineRunner {
     public void run(String... args){
 
         boolean adminExists =
-                authRepository.existsByRole(Role.ADMIN);
+                authRepository.existsByRole(Role.ROLE_ADMIN);
 
         if(!adminExists){
 
             String username = "admin";
             String password = "1234";
-            Set<Role> userRole = Set.of(Role.ADMIN);
+            Set<Role> userRole = Set.of(Role.ROLE_ADMIN);
 
             User adminUser = User.builder()
                     .username(username)

@@ -29,7 +29,7 @@ public class RegisterService implements IRegisterService {
         User user = User.builder()
                 .username(username)
                 .password(encodedPassword)
-                .roles(Set.of(Role.USER))
+                .roles(Set.of(Role.ROLE_USER))
                 .enabled(true)
                 .createdAt(LocalDateTime.now())
                 .build();

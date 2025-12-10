@@ -2,6 +2,8 @@ package com.example.auth_service.controller;
 
 
 import com.example.auth_service.domain.model.User;
+import com.example.auth_service.dto.response.UserResponse;
+import com.example.auth_service.mapper.UserResponseMapper;
 import com.example.auth_service.service.impl.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,9 +20,14 @@ public class UserController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private UserResponseMapper userResponseMapper;
+
     @PreAuthorize("hasAuthority('READ_USERS')")
     @GetMapping("/users")
-    public List<User> allUsers() {
-        return authService.allUsers();
+    public List<UserResponse> allUsers() {
+        return authService.allUsers().stream()
+                .map(userResponseMapper::toUserResponse)
+                .toList();
     }
 }
