@@ -2,31 +2,36 @@ package com.example.auth_service.service;
 
 import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
-import com.example.auth_service.dto.request.TokenRequest;
+import com.example.auth_service.dto.request.AccessTokenRequest;
 import com.example.auth_service.dto.request.UserRequest;
+import com.example.auth_service.dto.response.RefreshTokenResponse;
 
 
 import java.util.Set;
+import java.util.jar.JarException;
 
 public interface IJwtService {
 
     String generateAccessToken(UserRequest request);
 
-    String generateRefreshToken(UserRequest request);
+    RefreshTokenResponse generateRefreshToken(UserRequest request);
 
-    boolean isTokenValid(TokenRequest token);
+    boolean isTokenValid(AccessTokenRequest token);
 
-    String extractUsername(TokenRequest token);
+    void validateTokenOrThrow(AccessTokenRequest token) throws JarException;
 
-    Set<Authority> extractAuthorities(TokenRequest token);
+    String extractUsername(AccessTokenRequest token);
 
-    String extractTokenType(TokenRequest token);
+    Set<Authority> extractAuthorities(AccessTokenRequest token);
 
-    void validateAccessToken(TokenRequest token) throws InvalidJwtTokenException;
+    String extractTokenType(AccessTokenRequest token);
 
-    void validateRefreshToken(TokenRequest token) throws InvalidJwtTokenException;
+    boolean isRefreshToken(AccessTokenRequest token);
 
-    void validateAdminToken(TokenRequest token) throws InvalidJwtTokenException;
+    void validateAccessToken(AccessTokenRequest token) throws InvalidJwtTokenException;
 
-    boolean isRefreshToken(TokenRequest token);
+    void validateRefreshToken(AccessTokenRequest token) throws InvalidJwtTokenException;
+
+    void validateAdminToken(AccessTokenRequest token) throws InvalidJwtTokenException;
+
 }

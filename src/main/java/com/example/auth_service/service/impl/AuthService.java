@@ -1,16 +1,16 @@
 package com.example.auth_service.service.impl;
 
-import com.example.auth_service.domain.exception.InvalidTokenException;
 import com.example.auth_service.domain.exception.UserNotFoundException;
 import com.example.auth_service.domain.exception.WrongCredentialsException;
 import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.*;
 import com.example.auth_service.domain.exception.UsernameAlreadyExistsException;
 import com.example.auth_service.dto.response.AuthResponse;
+import com.example.auth_service.dto.response.RefreshTokenResponse;
+import com.example.auth_service.dto.response.NewRefreshTokenResponse;
 import com.example.auth_service.dto.response.UserResponse;
 import com.example.auth_service.mapper.UserResponseMapper;
 import com.example.auth_service.repository.AuthRepository;
-import com.example.auth_service.repository.RefreshTokenRepository;
 import com.example.auth_service.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,7 +65,7 @@ public class AuthService implements IAuthService {
 
 
         String accessToken = jwtService.generateAccessToken(userRequest);
-        String refreshToken = jwtService.generateRefreshToken(userRequest);
+        String refreshToken = jwtService.generateRefreshToken(userRequest).refreshToken();
 
         user.setRefreshToken(refreshToken);
         authRepository.save(user);
@@ -75,15 +75,17 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
+    public NewRefreshTokenResponse refreshToken(RefreshTokenRequest request) {
 
-        String refreshToken = request.refreshToken();
+        AccessTokenRequest refreshToken = new AccessTokenRequest(request.refreshToken());
 
-        if(!jwtService.isTokenValid(new TokenRequest(refreshToken))) {
-            throw new InvalidTokenException("Refresh token invalido");
-        }
+        // 1. Verificar que la firma sea valida y no este expirado
+        jwtService.validateTokenOrThrow(refreshToken);
 
-        String username = jwtService.extractUsername(new TokenRequest(refreshToken));
+        // 2. Verificar que sea un REFRESH token
+        jwtService.validateRefreshToken(refreshToken);
+
+        String username = jwtService.extractUsername(refreshToken);
         User user = authRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
 
@@ -93,12 +95,12 @@ public class AuthService implements IAuthService {
         );
 
         String newAccessToken = jwtService.generateAccessToken(userRequest);
-        String newRequestToken = jwtService.generateRefreshToken(userRequest);
+        RefreshTokenResponse newRefreshToken = jwtService.generateRefreshToken(userRequest);
 
-        user.setRefreshToken(refreshToken);
+        user.setRefreshToken(newRefreshToken.refreshToken());
         authRepository.save(user);
 
-        return new AuthResponse(newAccessToken, newRequestToken);
+        return new NewRefreshTokenResponse(newAccessToken, newRefreshToken.refreshToken(), newRefreshToken.refreshTokenExpiry());
     }
 
 

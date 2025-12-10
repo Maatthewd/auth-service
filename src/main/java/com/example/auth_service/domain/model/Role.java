@@ -5,13 +5,14 @@ import java.util.stream.Collectors;
 
 public enum Role {
 
-    ROLE_USER(Set.of(Authority.READ_SELF)),
+    ROLE_USER(Set.of(
+            Authority.READ_SELF,
+            Authority.UPDATE_SELF,
+            Authority.DELETE_SELF
+            )),
 
     ROLE_ADMIN(Set.of(
-            Authority.READ_USERS,
-            Authority.CREATE_USERS,
-            Authority.UPDATE_USERS,
-            Authority.DELETE_USERS
+            Authority.ADMIN_AUTHORITY
     ));
 
     private final Set<Authority> authorities;

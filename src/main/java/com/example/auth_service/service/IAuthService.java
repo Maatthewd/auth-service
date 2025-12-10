@@ -1,11 +1,14 @@
 package com.example.auth_service.service;
 
-import com.example.auth_service.domain.model.User;
+import com.example.auth_service.dto.request.AccessTokenRequest;
 import com.example.auth_service.dto.request.LoginRequest;
 import com.example.auth_service.dto.request.RefreshTokenRequest;
 import com.example.auth_service.dto.request.RegisterRequest;
 import com.example.auth_service.dto.response.AuthResponse;
+import com.example.auth_service.dto.response.MeResponse;
+import com.example.auth_service.dto.response.NewRefreshTokenResponse;
 import com.example.auth_service.dto.response.UserResponse;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -15,7 +18,9 @@ public interface IAuthService {
 
     AuthResponse login(LoginRequest request);
 
-    AuthResponse refreshToken(RefreshTokenRequest request);
+    NewRefreshTokenResponse refreshToken(RefreshTokenRequest request);
+
+    MeResponse getMe(Authentication auth);
 
     List<UserResponse> allUsers();
 }

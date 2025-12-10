@@ -27,19 +27,23 @@ public class AdminBootstrap implements CommandLineRunner {
                 authRepository.existsByRole(Role.ROLE_ADMIN);
 
         if(!adminExists){
-
-            String username = "admin";
-            String password = "1234";
-            Set<Role> userRole = Set.of(Role.ROLE_ADMIN);
-
-            User adminUser = User.builder()
-                    .username(username)
-                    .password(passwordEncoder.encode(password))
-                    .roles(userRole)
-                    .enabled(true)
-                    .build();
-
-            authRepository.save(adminUser);
+            createCustomUser("admin", "1234", Set.of(Role.ROLE_ADMIN));
         }
+
+
+
+
+    }
+
+    private User createCustomUser(String username, String password, Set<Role> roles) {
+
+        User customUser = User.builder()
+                .username(username)
+                .password(passwordEncoder.encode(password))
+                .roles(roles)
+                .enabled(true)
+                .build();
+
+        return authRepository.save(customUser);
     }
 }

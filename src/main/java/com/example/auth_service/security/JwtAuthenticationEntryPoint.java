@@ -1,5 +1,6 @@
 package com.example.auth_service.security;
 
+import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.exception.ApiError;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,16 +19,22 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(
             HttpServletRequest request,
             HttpServletResponse response,
-            AuthenticationException authException) throws IOException, ServletException
+            AuthenticationException authException) throws IOException
     {
         response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        ApiError error = new ApiError(
-                HttpStatus.UNAUTHORIZED,
-                "InvalidToken",
-                authException.getMessage()
-        );
+        ApiError error;
+
+        if (authException instanceof InvalidJwtTokenException ex) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            error = new ApiError(HttpStatus.UNAUTHORIZED, "InvalidJwt", ex.getMessage());
+
+        } // Aca se pueden agregar mas excepciones que puedan saltar en el filtro con un else-if
+
+        else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            error = new ApiError(HttpStatus.UNAUTHORIZED, "Unauthorized", authException.getMessage());
+        }
 
         ObjectMapper mapper = new ObjectMapper();
         response.getWriter().write(mapper.writeValueAsString(error));

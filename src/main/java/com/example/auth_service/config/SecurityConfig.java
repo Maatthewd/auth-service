@@ -46,12 +46,16 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()
+
                 )
 
                 // Necesario para H2 Console (iframes)
                 .headers(headers ->
                         headers.frameOptions(frame -> frame.disable())
                 )
+
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
                 // JWT Filter (NO bloquea si no hay token)
                 .addFilterBefore(

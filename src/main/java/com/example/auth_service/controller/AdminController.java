@@ -1,8 +1,6 @@
 package com.example.auth_service.controller;
 
 
-import com.example.auth_service.domain.model.User;
-import com.example.auth_service.dto.request.UserRequest;
 import com.example.auth_service.dto.response.UserResponse;
 import com.example.auth_service.mapper.UserResponseMapper;
 import com.example.auth_service.service.impl.AuthService;
@@ -17,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
-public class UserController {
+public class AdminController {
 
     @Autowired
     private AuthService authService;
@@ -25,7 +23,7 @@ public class UserController {
     @Autowired
     private UserResponseMapper userResponseMapper;
 
-    @PreAuthorize("hasAuthority('READ_USERS')")
+    @PreAuthorize("hasAnyAuthority('READ_USERS', 'ADMIN_AUTHORITY')")
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> allUsers() {
 

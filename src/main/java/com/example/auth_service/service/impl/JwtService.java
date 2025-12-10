@@ -2,13 +2,11 @@ package com.example.auth_service.service.impl;
 
 import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
-import com.example.auth_service.dto.request.TokenRequest;
+import com.example.auth_service.dto.request.AccessTokenRequest;
 import com.example.auth_service.dto.request.UserRequest;
+import com.example.auth_service.dto.response.RefreshTokenResponse;
 import com.example.auth_service.service.IJwtService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -55,24 +53,28 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public String generateRefreshToken(UserRequest request) {
+    public RefreshTokenResponse generateRefreshToken(UserRequest request) {
 
-        return Jwts.builder()
+        Instant expiry = Instant.now().plusSeconds(refreshTokenExpiration * 24 * 3600);
+
+        String token = Jwts.builder()
                 .setSubject(request.username())
                 .claim("type", "REFRESH")
                 .setIssuedAt(new Date())
-                .setExpiration(Date.from(Instant.now().plusSeconds(refreshTokenExpiration * 24 * 3600)))
+                .setExpiration(Date.from(expiry))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+
+        return new RefreshTokenResponse(token, expiry);
     }
 
     @Override
-    public boolean isTokenValid(TokenRequest token) {
+    public boolean isTokenValid(AccessTokenRequest token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
-                    .parseClaimsJws(token.token());
+                    .parseClaimsJws(token.accessToken());
             return true;
         } catch (JwtException e) {
             return false;
@@ -80,13 +82,34 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public String extractUsername(TokenRequest token) {
+    public void validateTokenOrThrow(AccessTokenRequest token) throws JwtException {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token.accessToken());
+        } catch (ExpiredJwtException e) {
+            throw new InvalidJwtTokenException("El token ha expirado");
+        } catch (UnsupportedJwtException e) {
+            throw new InvalidJwtTokenException("Formato de token no soportado");
+        } catch (MalformedJwtException e) {
+            throw new InvalidJwtTokenException("Token mal formado");
+        } catch (SignatureException e) {
+            throw new InvalidJwtTokenException("Firma de token inválida");
+        } catch (IllegalArgumentException e) {
+            throw new InvalidJwtTokenException("Token vacío o inválido");
+        }
+    }
+
+
+    @Override
+    public String extractUsername(AccessTokenRequest token) {
         return extractClaims(token).getSubject();
     }
 
 
     @Override
-    public Set<Authority> extractAuthorities(TokenRequest token){
+    public Set<Authority> extractAuthorities(AccessTokenRequest token){
 
         List<String> authorities = extractClaims(token)
                 .get("authorities", List.class);
@@ -107,7 +130,7 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-        public String extractTokenType(TokenRequest token) {
+        public String extractTokenType(AccessTokenRequest token) {
         String tokenType = extractClaims(token)
                 .get("type", String.class);
 
@@ -115,11 +138,11 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public boolean isRefreshToken(TokenRequest token) {
+    public boolean isRefreshToken(AccessTokenRequest token) {
         return "REFRESH".equals(extractTokenType(token));
     }
 
-    public void validateAccessToken(TokenRequest token) throws InvalidJwtTokenException{
+    public void validateAccessToken(AccessTokenRequest token) throws InvalidJwtTokenException{
         Claims claims = extractClaims(token);
         String type = claims.get("type", String.class);
         if (!"ACCESS".equals(type)) {
@@ -127,7 +150,7 @@ public class JwtService implements IJwtService {
         }
     }
 
-    public void validateRefreshToken(TokenRequest token) throws InvalidJwtTokenException {
+    public void validateRefreshToken(AccessTokenRequest token) throws InvalidJwtTokenException {
         Claims claims = extractClaims(token);
         String type = claims.get("type", String.class);
         if (!"REFRESH".equals(type)) {
@@ -136,20 +159,20 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public void validateAdminToken(TokenRequest token) throws InvalidJwtTokenException {
+    public void validateAdminToken(AccessTokenRequest token) throws InvalidJwtTokenException {
         Set<Authority> authorities = extractAuthorities(token);
 
-        if(!authorities.contains(Authority.READ_USERS)) {
+        if(!authorities.contains(Authority.ADMIN_AUTHORITY)) {
             throw new InvalidJwtTokenException("Se esperaba un ADMIN token");
         }
     }
 
 
-    private Claims extractClaims(TokenRequest token) {
+    private Claims extractClaims(AccessTokenRequest token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJws(token.token())
+                .parseClaimsJws(token.accessToken())
                 .getBody();
     }
 }
