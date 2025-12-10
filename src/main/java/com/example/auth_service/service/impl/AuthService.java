@@ -6,6 +6,7 @@ import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.*;
 import com.example.auth_service.domain.exception.UsernameAlreadyExistsException;
 import com.example.auth_service.dto.response.*;
+import com.example.auth_service.mapper.MeResponseMapper;
 import com.example.auth_service.mapper.UserResponseMapper;
 import com.example.auth_service.repository.AuthRepository;
 import com.example.auth_service.service.IAuthService;
@@ -101,17 +102,5 @@ public class AuthService implements IAuthService {
         return new NewRefreshTokenResponse(newAccessToken, newRefreshToken.refreshToken(), newRefreshToken.refreshTokenExpiry());
     }
 
-    @Override
-    public MeResponse getMe(Authentication auth) {
-        return null;
-    }
 
-    @Override
-    public List<UserResponse> allUsers() {
-        return authRepository
-                .findAll()
-                .stream()
-                .map(UserResponseMapper::toUserResponse)
-                .toList();
-    }
 }

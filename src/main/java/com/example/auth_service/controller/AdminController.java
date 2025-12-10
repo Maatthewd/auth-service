@@ -3,7 +3,7 @@ package com.example.auth_service.controller;
 
 import com.example.auth_service.dto.response.UserResponse;
 import com.example.auth_service.mapper.UserResponseMapper;
-import com.example.auth_service.service.impl.AuthService;
+import com.example.auth_service.service.impl.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +18,7 @@ import java.util.List;
 public class AdminController {
 
     @Autowired
-    private AuthService authService;
+    private AdminService adminService;
 
     @Autowired
     private UserResponseMapper userResponseMapper;
@@ -27,7 +27,7 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> allUsers() {
 
-        List<UserResponse> response = authService.allUsers();
+        List<UserResponse> response = adminService.allUsers();
         return ResponseEntity.ok(response);
 
     }

@@ -20,7 +20,4 @@ public interface IAuthService {
 
     NewRefreshTokenResponse refreshToken(RefreshTokenRequest request);
 
-    MeResponse getMe(Authentication auth);
-
-    List<UserResponse> allUsers();
 }
