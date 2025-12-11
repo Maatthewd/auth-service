@@ -48,15 +48,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         AccessTokenRequest tokenRequest = new AccessTokenRequest(token);
 
-        // Validacion tecnica del JWT (firma, expiración, formato, etc.)
         jwtService.validateTokenOrThrow(tokenRequest);
 
-        // Validacion funcional (tipo ACCESS)
         jwtService.validateAccessToken(tokenRequest);
 
         String username = jwtService.extractUsername(tokenRequest);
         Set<Authority> authorities = jwtService.extractAuthorities(tokenRequest);
-
 
         List<SimpleGrantedAuthority> grantedAuthorities =
                 authorities.stream().map(a -> new SimpleGrantedAuthority(a.name())).toList();

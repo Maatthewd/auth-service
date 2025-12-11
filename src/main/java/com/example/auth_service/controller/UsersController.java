@@ -25,12 +25,11 @@ public class UsersController {
     @Autowired
     private AdminService adminService;
 
-    @PreAuthorize("hasAnyAuthority('READ_SELF')")
+    @PreAuthorize("hasAnyAuthority('READ_SELF', 'ADMIN_AUTHORITY')")
     @GetMapping("/me")
     public ResponseEntity<MeResponse> me(Authentication authentication) {
 
         MeResponse response = userService.me(authentication);
-
         return ResponseEntity.ok(response);
     }
 

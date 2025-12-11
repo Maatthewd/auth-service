@@ -8,6 +8,6 @@ import java.util.Set;
 public record MeResponse(
         String username,
         Set<Role> rolesSet,
-        Set<Authority> authoritySet
+        Set<String> authoritySet
 ) {
 }
