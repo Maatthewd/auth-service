@@ -2,6 +2,7 @@ package com.example.auth_service.config;
 
 import com.example.auth_service.domain.model.Authority;
 import com.example.auth_service.security.JWTAuthenticationFilter;
+import com.example.auth_service.security.JwtAccessDeniedHandler;
 import com.example.auth_service.security.JwtAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +22,9 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+    @Autowired
+    private JwtAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -55,7 +59,8 @@ public class SecurityConfig {
                 )
 
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
 
                 // JWT Filter (NO bloquea si no hay token)
                 .addFilterBefore(
