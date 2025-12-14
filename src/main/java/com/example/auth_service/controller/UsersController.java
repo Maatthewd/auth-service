@@ -3,7 +3,6 @@ package com.example.auth_service.controller;
 
 import com.example.auth_service.dto.response.MeResponse;
 import com.example.auth_service.dto.response.UserResponse;
-import com.example.auth_service.service.impl.AdminService;
 import com.example.auth_service.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +21,7 @@ public class UsersController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private AdminService adminService;
+
 
     @PreAuthorize("hasAnyAuthority('READ_SELF', 'ADMIN_AUTHORITY')")
     @GetMapping("/me")
@@ -37,7 +35,7 @@ public class UsersController {
     @GetMapping()
     public ResponseEntity<List<UserResponse>> allUsers() {
 
-        List<UserResponse> response = adminService.allUsers();
+        List<UserResponse> response = userService.allUsers();
         return ResponseEntity.ok(response);
 
     }
