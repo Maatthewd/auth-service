@@ -4,6 +4,7 @@ import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
 import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.dto.request.UserRequest;
+import com.example.auth_service.dto.response.AccessTokenResponse;
 import com.example.auth_service.dto.response.RefreshTokenResponse;
 
 
@@ -12,7 +13,7 @@ import java.util.jar.JarException;
 
 public interface IJwtService {
 
-    String generateAccessToken(UserRequest request);
+    AccessTokenResponse generateAccessToken(UserRequest request);
 
     RefreshTokenResponse generateRefreshToken(UserRequest request);
 

@@ -4,6 +4,7 @@ import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
 import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.dto.request.UserRequest;
+import com.example.auth_service.dto.response.AccessTokenResponse;
 import com.example.auth_service.dto.response.RefreshTokenResponse;
 import com.example.auth_service.service.IJwtService;
 import io.jsonwebtoken.*;
@@ -36,9 +37,9 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public String generateAccessToken(UserRequest request) {
+    public AccessTokenResponse generateAccessToken(UserRequest request) {
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setSubject(request.username())
                 .claim("authorities", request.roles().stream()
                         .flatMap(r -> r.getAuthorities().stream())
@@ -50,6 +51,7 @@ public class JwtService implements IJwtService {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
 
+        return new AccessTokenResponse(token);
     }
 
     @Override
@@ -113,7 +115,6 @@ public class JwtService implements IJwtService {
 
         List<String> authorities = extractClaims(token)
                 .get("authorities", List.class);
-
 
         if (authorities == null) {
             return Set.of();

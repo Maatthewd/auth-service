@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class AuthService implements IAuthService {
 
@@ -59,14 +61,18 @@ public class AuthService implements IAuthService {
         );
 
 
-        String accessToken = jwtService.generateAccessToken(userRequest);
-        String refreshToken = jwtService.generateRefreshToken(userRequest).refreshToken();
+        AccessTokenResponse accessToken = jwtService.generateAccessToken(userRequest);
+        RefreshTokenResponse refreshToken = jwtService.generateRefreshToken(userRequest);
 
-        user.setRefreshToken(refreshToken);
+
+
+        user.setRefreshToken(refreshToken.refreshToken());
+        user.setRefreshTokenExpiry(refreshToken.refreshTokenExpiry());
+
         authRepository.save(user);
 
-        return new AuthResponse(accessToken, refreshToken);
-
+        return new AuthResponse(accessToken.accessToken(),
+                refreshToken.refreshToken());
     }
 
     @Override
@@ -87,7 +93,7 @@ public class AuthService implements IAuthService {
 
         // 3. Verificar que el refresh Token sea el mismo que el guardado
 
-        if(!refreshToken.equals(user.getRefreshToken())) {
+        if(!refreshToken.userToken().equals(user.getRefreshToken())) {
             throw new InvalidTokenException("Refresh token no valido o revocado");
         }
 
@@ -96,13 +102,17 @@ public class AuthService implements IAuthService {
                 user.getRoles()
         );
 
-        String newAccessToken = jwtService.generateAccessToken(userRequest);
+        AccessTokenResponse newAccessToken = jwtService.generateAccessToken(userRequest);
         RefreshTokenResponse newRefreshToken = jwtService.generateRefreshToken(userRequest);
 
         user.setRefreshToken(newRefreshToken.refreshToken());
+        user.setRefreshTokenExpiry(newRefreshToken.refreshTokenExpiry());
         authRepository.save(user);
 
-        return new NewRefreshTokenResponse(newAccessToken, newRefreshToken.refreshToken(), newRefreshToken.refreshTokenExpiry());
+        return new NewRefreshTokenResponse(newAccessToken.accessToken(),
+                newRefreshToken.refreshToken(),
+                newRefreshToken.refreshTokenExpiry()
+        );
     }
 
 

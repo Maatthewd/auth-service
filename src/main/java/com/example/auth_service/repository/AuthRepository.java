@@ -16,4 +16,5 @@ public interface AuthRepository extends JpaRepository<User, Long> {
     boolean existsByRole(@Param("role") Role role);
 
 
+
 }
