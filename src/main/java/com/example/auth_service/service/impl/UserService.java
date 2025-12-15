@@ -2,6 +2,7 @@ package com.example.auth_service.service.impl;
 
 import com.example.auth_service.config.PasswordConfig;
 import com.example.auth_service.domain.exception.UserNotFoundException;
+import com.example.auth_service.domain.exception.UsernameAlreadyExistsException;
 import com.example.auth_service.domain.model.Role;
 import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.CreateUserRequest;
@@ -17,7 +18,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserService implements IUserService {
@@ -57,16 +60,22 @@ public class UserService implements IUserService {
     public UserResponse createUser(CreateUserRequest request) {
         String username = request.username();
         String rawPassword = request.password();
-        List<Role> roles = request.roles();
+        Set<Role> roles = request.roles();
 
         BCryptPasswordEncoder encoder = passwordConfig.passwordEncoder();
         String encodedPassword = encoder.encode(rawPassword);
 
         LocalDateTime creationDate = LocalDateTime.now();
 
+        if(authRepository.existsByUsername(username)) {
+            throw new UsernameAlreadyExistsException("El usuario ya existe");
+        }
+
+
         User user = User.builder()
                 .username(username)
                 .password(encodedPassword)
+                .roles(roles)
                 .enabled(true)
                 .createdAt(creationDate)
                 .updatedAt(creationDate)

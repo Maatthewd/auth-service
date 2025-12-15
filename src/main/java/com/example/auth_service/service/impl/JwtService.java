@@ -2,7 +2,7 @@ package com.example.auth_service.service.impl;
 
 import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
-import com.example.auth_service.dto.request.AccessTokenRequest;
+import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.dto.request.UserRequest;
 import com.example.auth_service.dto.response.RefreshTokenResponse;
 import com.example.auth_service.service.IJwtService;
@@ -69,12 +69,12 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public boolean isTokenValid(AccessTokenRequest token) {
+    public boolean isTokenValid(TokenRequest token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
-                    .parseClaimsJws(token.accessToken());
+                    .parseClaimsJws(token.userToken());
             return true;
         } catch (JwtException e) {
             return false;
@@ -82,12 +82,12 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public void validateTokenOrThrow(AccessTokenRequest token) throws JwtException {
+    public void validateTokenOrThrow(TokenRequest token) throws JwtException {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
-                    .parseClaimsJws(token.accessToken());
+                    .parseClaimsJws(token.userToken());
         } catch (ExpiredJwtException e) {
             throw new InvalidJwtTokenException("El token ha expirado");
         } catch (UnsupportedJwtException e) {
@@ -103,13 +103,13 @@ public class JwtService implements IJwtService {
 
 
     @Override
-    public String extractUsername(AccessTokenRequest token) {
+    public String extractUsername(TokenRequest token) {
         return extractClaims(token).getSubject();
     }
 
 
     @Override
-    public Set<Authority> extractAuthorities(AccessTokenRequest token){
+    public Set<Authority> extractAuthorities(TokenRequest token){
 
         List<String> authorities = extractClaims(token)
                 .get("authorities", List.class);
@@ -130,7 +130,7 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-        public String extractTokenType(AccessTokenRequest token) {
+        public String extractTokenType(TokenRequest token) {
         String tokenType = extractClaims(token)
                 .get("type", String.class);
 
@@ -138,11 +138,11 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public boolean isRefreshToken(AccessTokenRequest token) {
+    public boolean isRefreshToken(TokenRequest token) {
         return "REFRESH".equals(extractTokenType(token));
     }
 
-    public void validateAccessToken(AccessTokenRequest token) throws InvalidJwtTokenException{
+    public void validateAccessToken(TokenRequest token) throws InvalidJwtTokenException{
         Claims claims = extractClaims(token);
         String type = claims.get("type", String.class);
         if (!"ACCESS".equals(type)) {
@@ -150,7 +150,7 @@ public class JwtService implements IJwtService {
         }
     }
 
-    public void validateRefreshToken(AccessTokenRequest token) throws InvalidJwtTokenException {
+    public void validateRefreshToken(TokenRequest token) throws InvalidJwtTokenException {
         Claims claims = extractClaims(token);
         String type = claims.get("type", String.class);
         if (!"REFRESH".equals(type)) {
@@ -159,7 +159,7 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public void validateAdminToken(AccessTokenRequest token) throws InvalidJwtTokenException {
+    public void validateAdminToken(TokenRequest token) throws InvalidJwtTokenException {
         Set<Authority> authorities = extractAuthorities(token);
 
         if(!authorities.contains(Authority.ADMIN_AUTHORITY)) {
@@ -168,11 +168,11 @@ public class JwtService implements IJwtService {
     }
 
 
-    private Claims extractClaims(AccessTokenRequest token) {
+    private Claims extractClaims(TokenRequest token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJws(token.accessToken())
+                .parseClaimsJws(token.userToken())
                 .getBody();
     }
 }

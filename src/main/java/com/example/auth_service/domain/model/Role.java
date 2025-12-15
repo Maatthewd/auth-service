@@ -12,7 +12,16 @@ public enum Role {
             )),
 
     ROLE_ADMIN(Set.of(
-            Authority.ADMIN_AUTHORITY
+            Authority.ADMIN_AUTHORITY,
+
+            Authority.READ_USERS,
+            Authority.CREATE_USERS,
+            Authority.UPDATE_USERS,
+            Authority.DELETE_USERS,
+
+            Authority.READ_SELF,
+            Authority.UPDATE_SELF,
+            Authority.DELETE_SELF
     ));
 
     private final Set<Authority> authorities;

@@ -1,11 +1,8 @@
 package com.example.auth_service.security;
 
-import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
-import com.example.auth_service.dto.request.AccessTokenRequest;
+import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.service.impl.JwtService;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,7 +43,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        AccessTokenRequest tokenRequest = new AccessTokenRequest(token);
+        TokenRequest tokenRequest = new TokenRequest(token);
 
         jwtService.validateTokenOrThrow(tokenRequest);
 

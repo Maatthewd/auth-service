@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,10 +65,18 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Convierte el enum Role en SimpleGrantedAuthority
-        return roles.stream()
-                    .map(role -> new SimpleGrantedAuthority(role.name()))
-                    .collect(Collectors.toSet());
+
+        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+
+        roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.name())));
+
+        roles.stream()
+                .flatMap(role -> role
+                        .getAuthorities()
+                        .stream())
+                .forEach(auth -> authorities.add(new SimpleGrantedAuthority(auth.name())));
+
+        return authorities;
     }
 
     @Override

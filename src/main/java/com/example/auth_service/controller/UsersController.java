@@ -22,7 +22,7 @@ public class UsersController {
     private UserService userService;
 
 
-    @PreAuthorize("hasAnyAuthority('READ_SELF', 'ADMIN_AUTHORITY')")
+    @PreAuthorize("hasAuthority('READ_SELF')")
     @GetMapping("/me")
     public ResponseEntity<MeResponse> me(Authentication authentication) {
 
@@ -30,7 +30,7 @@ public class UsersController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyAuthority('READ_USERS', 'ADMIN_AUTHORITY')")
+    @PreAuthorize("hasAuthority('READ_USERS')")
     @GetMapping()
     public ResponseEntity<List<UserResponse>> allUsers() {
 
@@ -39,7 +39,7 @@ public class UsersController {
 
     }
 
-    @PreAuthorize("hasAnyAuthority('CREATE_USERS', 'ADMIN_AUTHORITY')")
+    @PreAuthorize("hasAuthority('CREATE_USERS')")
     @PostMapping()
     public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest request){
 

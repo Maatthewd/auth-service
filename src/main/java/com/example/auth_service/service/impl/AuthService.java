@@ -1,21 +1,17 @@
 package com.example.auth_service.service.impl;
 
+import com.example.auth_service.domain.exception.InvalidTokenException;
 import com.example.auth_service.domain.exception.UserNotFoundException;
 import com.example.auth_service.domain.exception.WrongCredentialsException;
 import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.*;
 import com.example.auth_service.domain.exception.UsernameAlreadyExistsException;
 import com.example.auth_service.dto.response.*;
-import com.example.auth_service.mapper.MeResponseMapper;
-import com.example.auth_service.mapper.UserResponseMapper;
 import com.example.auth_service.repository.AuthRepository;
 import com.example.auth_service.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class AuthService implements IAuthService {
@@ -74,9 +70,9 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    public NewRefreshTokenResponse refreshToken(RefreshTokenRequest request) {
+    public NewRefreshTokenResponse refreshToken(TokenRequest request) {
 
-        AccessTokenRequest refreshToken = new AccessTokenRequest(request.refreshToken());
+        TokenRequest refreshToken = new TokenRequest(request.userToken());
 
         // 1. Verificar que la firma sea valida y no este expirado
         jwtService.validateTokenOrThrow(refreshToken);
@@ -87,6 +83,13 @@ public class AuthService implements IAuthService {
         String username = jwtService.extractUsername(refreshToken);
         User user = authRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+
+
+        // 3. Verificar que el refresh Token sea el mismo que el guardado
+
+        if(!refreshToken.equals(user.getRefreshToken())) {
+            throw new InvalidTokenException("Refresh token no valido o revocado");
+        }
 
         UserRequest userRequest = new UserRequest(
                 user.getUsername(),
