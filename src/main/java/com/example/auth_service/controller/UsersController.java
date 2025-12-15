@@ -1,6 +1,8 @@
 package com.example.auth_service.controller;
 
 
+import com.example.auth_service.dto.request.CreateUserRequest;
+import com.example.auth_service.dto.request.UserRequest;
 import com.example.auth_service.dto.response.MeResponse;
 import com.example.auth_service.dto.response.UserResponse;
 import com.example.auth_service.service.impl.UserService;
@@ -8,9 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,7 +20,6 @@ public class UsersController {
 
     @Autowired
     private UserService userService;
-
 
 
     @PreAuthorize("hasAnyAuthority('READ_SELF', 'ADMIN_AUTHORITY')")
@@ -39,5 +38,14 @@ public class UsersController {
         return ResponseEntity.ok(response);
 
     }
+
+    @PreAuthorize("hasAnyAuthority('CREATE_USERS', 'ADMIN_AUTHORITY')")
+    @PostMapping()
+    public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest request){
+
+        UserResponse response = userService.createUser(request);
+        return ResponseEntity.ok(response);
+    }
+
 
 }
