@@ -2,12 +2,14 @@ package com.example.auth_service.service.impl;
 
 import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
+import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.dto.request.UserRequest;
 import com.example.auth_service.dto.response.AccessTokenResponse;
 import com.example.auth_service.dto.response.RefreshTokenResponse;
 import com.example.auth_service.service.IJwtService;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,15 +35,16 @@ public class JwtService implements IJwtService {
     private long refreshTokenExpiration;
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     @Override
-    public AccessTokenResponse generateAccessToken(UserRequest request) {
+    public AccessTokenResponse generateAccessToken(User user) {
 
         String token = Jwts.builder()
-                .setSubject(request.username())
-                .claim("authorities", request.roles().stream()
+                .setSubject(user.getUsername())
+                .claim("authorities", user.getRoles().stream()
                         .flatMap(r -> r.getAuthorities().stream())
                         .map(Enum::name)
                         .toList())
@@ -55,12 +58,12 @@ public class JwtService implements IJwtService {
     }
 
     @Override
-    public RefreshTokenResponse generateRefreshToken(UserRequest request) {
+    public RefreshTokenResponse generateRefreshToken(User user) {
 
         Instant expiry = Instant.now().plusSeconds(refreshTokenExpiration * 24 * 3600);
 
         String token = Jwts.builder()
-                .setSubject(request.username())
+                .setSubject(user.getUsername())
                 .claim("type", "REFRESH")
                 .setIssuedAt(new Date())
                 .setExpiration(Date.from(expiry))

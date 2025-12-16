@@ -7,6 +7,7 @@ import com.example.auth_service.dto.response.MeResponse;
 import com.example.auth_service.dto.response.UserResponse;
 import com.example.auth_service.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -44,7 +45,23 @@ public class UsersController {
     public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest request){
 
         UserResponse response = userService.createUser(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PreAuthorize("hasAuthority('DELETE_USERS')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAuthority('DELETE_SELF')")
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteSelf(Authentication authentication) {
+
+        userService.deleteSelf(authentication);
+        return ResponseEntity.noContent().build();
     }
 
 

@@ -3,6 +3,7 @@ package com.example.auth_service.domain.model;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 public enum Role {
 
     ROLE_USER(Set.of(

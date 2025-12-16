@@ -93,8 +93,21 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponse deleteUser() {
+    public void deleteUser(Long id) {
+        User user = authRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
 
-        return null;
+        authRepository.delete(user);
+    }
+
+    @Override
+    public void deleteSelf(Authentication authentication) {
+
+        String username = authentication.getName();
+
+        User user = authRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+
+        authRepository.delete(user);
     }
 }

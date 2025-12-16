@@ -30,9 +30,6 @@ public class AdminBootstrap implements CommandLineRunner {
             createCustomUser("admin", "1234", Set.of(Role.ROLE_ADMIN));
         }
 
-
-
-
     }
 
     private User createCustomUser(String username, String password, Set<Role> roles) {

@@ -18,6 +18,8 @@ public interface IUserService {
 
     UserResponse updateUser();
 
-    UserResponse deleteUser();
+    void deleteUser(Long id);
+
+    void deleteSelf(Authentication authentication);
 
 }

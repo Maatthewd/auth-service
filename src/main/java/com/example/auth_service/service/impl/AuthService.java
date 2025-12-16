@@ -55,24 +55,15 @@ public class AuthService implements IAuthService {
                 user.getPassword()
         );
 
-        UserRequest userRequest = new UserRequest(
-                user.getUsername(),
-                user.getRoles()
-        );
-
-
-        AccessTokenResponse accessToken = jwtService.generateAccessToken(userRequest);
-        RefreshTokenResponse refreshToken = jwtService.generateRefreshToken(userRequest);
-
-
+        String accessToken = jwtService.generateAccessToken(user).accessToken();
+        RefreshTokenResponse refreshToken = jwtService.generateRefreshToken(user);
 
         user.setRefreshToken(refreshToken.refreshToken());
         user.setRefreshTokenExpiry(refreshToken.refreshTokenExpiry());
 
         authRepository.save(user);
 
-        return new AuthResponse(accessToken.accessToken(),
-                refreshToken.refreshToken());
+        return new AuthResponse(accessToken, refreshToken.refreshToken());
     }
 
     @Override
@@ -97,13 +88,9 @@ public class AuthService implements IAuthService {
             throw new InvalidTokenException("Refresh token no valido o revocado");
         }
 
-        UserRequest userRequest = new UserRequest(
-                user.getUsername(),
-                user.getRoles()
-        );
 
-        AccessTokenResponse newAccessToken = jwtService.generateAccessToken(userRequest);
-        RefreshTokenResponse newRefreshToken = jwtService.generateRefreshToken(userRequest);
+        AccessTokenResponse newAccessToken = jwtService.generateAccessToken(user);
+        RefreshTokenResponse newRefreshToken = jwtService.generateRefreshToken(user);
 
         user.setRefreshToken(newRefreshToken.refreshToken());
         user.setRefreshTokenExpiry(newRefreshToken.refreshTokenExpiry());

@@ -9,6 +9,7 @@ import com.example.auth_service.service.impl.AuthService;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         authService.register(request);
-        return ResponseEntity.ok("User Registered");
+        return ResponseEntity.status(HttpStatus.CREATED).body("User Registered");
     }
 
     @PostMapping("/login")
