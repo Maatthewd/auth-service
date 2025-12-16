@@ -39,6 +39,7 @@ public class UserCreateSecurityTest {
                         .username("admin_" + UUID.randomUUID())
                         .password("123456")
                         .roles(Set.of(Role.ROLE_ADMIN))
+                        .enabled(true)
                         .build()
         );
     }
@@ -51,11 +52,12 @@ public class UserCreateSecurityTest {
                         .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .content("""
-                            {
-                              "username": "userTest",
-                              "password": "123456"
-                            }
-                        """))
+                                    {
+                                      "username": "userTest",
+                                      "password": "123456",
+                                      "roles": ["ROLE_USER"]
+                                    }
+                                """))
                 .andExpect(status().isCreated());
     }
 

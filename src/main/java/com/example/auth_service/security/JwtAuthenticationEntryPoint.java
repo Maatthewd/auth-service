@@ -16,6 +16,9 @@ import java.io.IOException;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public void commence(
             HttpServletRequest request,
@@ -23,21 +26,21 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             AuthenticationException authException) throws IOException
     {
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
         ApiError error;
 
         if (authException instanceof InvalidJwtTokenException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            error = new ApiError(HttpStatus.UNAUTHORIZED, "InvalidJwt", ex.getMessage());
+            error = new ApiError(HttpStatus.UNAUTHORIZED, "INVALID_JWT", ex.getMessage());
 
         } // Aca se pueden agregar mas excepciones que puedan saltar en el filtro con un else-if
 
         else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            error = new ApiError(HttpStatus.UNAUTHORIZED, "Unauthorized", authException.getMessage());
+            error = new ApiError(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", authException.getMessage());
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        response.getWriter().write(mapper.writeValueAsString(error));
+        objectMapper.writeValue(response.getWriter(), error);
     }
 }

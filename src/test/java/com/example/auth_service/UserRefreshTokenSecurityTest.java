@@ -39,6 +39,7 @@ class UserRefreshTokenSecurityTest {
                         .username("user")
                         .password("123456")
                         .roles(Set.of(Role.ROLE_USER))
+                        .enabled(true)
                         .build());
 
         String refreshToken = jwtService.generateRefreshToken(user).refreshToken();
@@ -49,7 +50,7 @@ class UserRefreshTokenSecurityTest {
 
         String requestJson = """
                 {
-                "refreshToken": "%s"
+                "userToken": "%s"
                 }
                 """.formatted(refreshToken);
 
@@ -75,7 +76,7 @@ class UserRefreshTokenSecurityTest {
                         .contentType("application/json")
                         .content("""
                                 {
-                                "refreshToken": "%s"
+                                "userToken": "%s"
                                 }
                                 """.formatted(accessToken)))
                 .andExpect(status().isUnauthorized());

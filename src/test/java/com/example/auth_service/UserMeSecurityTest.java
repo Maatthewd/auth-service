@@ -39,6 +39,7 @@ class UserMeSecurityTest {
                         .username("user")
                         .password("123456")
                         .roles(Set.of(Role.ROLE_USER))
+                        .enabled(true)
                         .build()
         );
 

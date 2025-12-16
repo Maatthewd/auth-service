@@ -1,5 +1,6 @@
 package com.example.auth_service.security;
 
+import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
 import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.service.impl.JwtService;
@@ -34,7 +35,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -45,22 +45,25 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         TokenRequest tokenRequest = new TokenRequest(token);
 
+        // Validar firma y expiración del token
         jwtService.validateTokenOrThrow(tokenRequest);
 
+        // Validar que sea un ACCESS token
         jwtService.validateAccessToken(tokenRequest);
 
         String username = jwtService.extractUsername(tokenRequest);
         Set<Authority> authorities = jwtService.extractAuthorities(tokenRequest);
 
         List<SimpleGrantedAuthority> grantedAuthorities =
-                authorities.stream().map(a -> new SimpleGrantedAuthority(a.name())).toList();
+                authorities.stream()
+                        .map(a -> new SimpleGrantedAuthority(a.name()))
+                        .toList();
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities)
         );
 
         filterChain.doFilter(request, response);
-
     }
 
     @Override

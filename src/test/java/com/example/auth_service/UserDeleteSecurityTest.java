@@ -1,6 +1,7 @@
 package com.example.auth_service;
 
 
+import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Role;
 import com.example.auth_service.domain.model.User;
 import com.example.auth_service.repository.AuthRepository;
@@ -39,6 +40,7 @@ public class UserDeleteSecurityTest {
                         .username("userTest")
                         .password("123")
                         .roles(Set.of(Role.ROLE_USER))
+                        .enabled(true)
                         .build()
         );
     }
@@ -49,6 +51,7 @@ public class UserDeleteSecurityTest {
                         .username("adminTest")
                         .password("123")
                         .roles(Set.of(Role.ROLE_ADMIN))
+                        .enabled(true)
                         .build()
         );
     }
@@ -92,15 +95,15 @@ public class UserDeleteSecurityTest {
     }
 
     @Test
-    void deleteUser_withRefreshToken_shouldReturn403() throws Exception {
+    void deleteUser_withRefreshToken_shouldReturn401() throws Exception {
         User user = createUser();
         User admin = createAdmin();
 
-        String userToken = jwtService.generateAccessToken(user).accessToken();
+        String refreshToken = jwtService.generateRefreshToken(user).refreshToken();
 
         mockMvc.perform(delete("/users/{id}", admin.getId())
-                        .header("Authorization", "Bearer " + userToken))
-                .andExpect(status().isForbidden());
+                        .header("Authorization", "Bearer " + refreshToken))
+                .andExpect(status().isUnauthorized());
     }
 
 }

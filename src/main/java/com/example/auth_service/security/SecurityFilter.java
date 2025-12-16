@@ -23,7 +23,8 @@ public class SecurityFilter {
     @Bean
     public org.springframework.security.web.SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JWTAuthenticationFilter jwtFilter
+            JWTAuthenticationFilter jwtFilter,
+            JwtExceptionHandlerFilter exceptionHandlerFilter
     ) throws Exception {
 
         http
@@ -44,7 +45,6 @@ public class SecurityFilter {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()
-
                 )
 
                 // Necesario para H2 Console (iframes)
@@ -56,12 +56,17 @@ public class SecurityFilter {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
 
-                // JWT Filter (NO bloquea si no hay token)
+                // Filtro de excepciones ANTES del filtro JWT
                 .addFilterBefore(
+                        exceptionHandlerFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+
+                // JWT Filter DESPUÉS del filtro de excepciones
+                .addFilterAfter(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
-
 
         return http.build();
     }
