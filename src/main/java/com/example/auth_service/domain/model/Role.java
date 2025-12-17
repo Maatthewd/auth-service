@@ -3,16 +3,38 @@ package com.example.auth_service.domain.model;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 public enum Role {
 
-    ROLE_USER(Set.of(Authority.READ_SELF)),
+    ROLE_USER(Set.of(
+            Authority.READ_SELF,
+            Authority.UPDATE_SELF,
+            Authority.DELETE_SELF
+            )),
+
+    ROLE_MANAGER(Set.of(
+            Authority.READ_SELF,
+            Authority.UPDATE_SELF,
+            Authority.DELETE_SELF,
+
+            Authority.READ_USERS,
+            Authority.UPDATE_USERS
+    )),
 
     ROLE_ADMIN(Set.of(
+            Authority.ADMIN_AUTHORITY,
+
+            Authority.READ_SELF,
+            Authority.UPDATE_SELF,
+            Authority.DELETE_SELF,
+
             Authority.READ_USERS,
             Authority.CREATE_USERS,
             Authority.UPDATE_USERS,
             Authority.DELETE_USERS
     ));
+
+
 
     private final Set<Authority> authorities;
 

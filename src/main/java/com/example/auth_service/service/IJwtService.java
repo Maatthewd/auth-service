@@ -2,19 +2,25 @@ package com.example.auth_service.service;
 
 import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
+import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.dto.request.UserRequest;
+import com.example.auth_service.dto.response.AccessTokenResponse;
+import com.example.auth_service.dto.response.RefreshTokenResponse;
 
 
 import java.util.Set;
+import java.util.jar.JarException;
 
 public interface IJwtService {
 
-    String generateAccessToken(UserRequest request);
+    AccessTokenResponse generateAccessToken(User user);
 
-    String generateRefreshToken(UserRequest request);
+    RefreshTokenResponse generateRefreshToken(User user);
 
     boolean isTokenValid(TokenRequest token);
+
+    void validateTokenOrThrow(TokenRequest token) throws JarException;
 
     String extractUsername(TokenRequest token);
 
@@ -22,11 +28,12 @@ public interface IJwtService {
 
     String extractTokenType(TokenRequest token);
 
+    boolean isRefreshToken(TokenRequest token);
+
     void validateAccessToken(TokenRequest token) throws InvalidJwtTokenException;
 
     void validateRefreshToken(TokenRequest token) throws InvalidJwtTokenException;
 
     void validateAdminToken(TokenRequest token) throws InvalidJwtTokenException;
 
-    boolean isRefreshToken(TokenRequest token);
 }

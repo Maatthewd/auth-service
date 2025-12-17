@@ -6,17 +6,14 @@ import com.example.auth_service.domain.exception.WrongCredentialsException;
 import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.*;
 import com.example.auth_service.domain.exception.UsernameAlreadyExistsException;
-import com.example.auth_service.dto.response.AuthResponse;
-import com.example.auth_service.dto.response.UserResponse;
-import com.example.auth_service.mapper.UserResponseMapper;
+import com.example.auth_service.dto.response.*;
 import com.example.auth_service.repository.AuthRepository;
-import com.example.auth_service.repository.RefreshTokenRepository;
 import com.example.auth_service.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.Instant;
 
 @Service
 public class AuthService implements IAuthService {
@@ -58,56 +55,52 @@ public class AuthService implements IAuthService {
                 user.getPassword()
         );
 
-        UserRequest userRequest = new UserRequest(
-                user.getUsername(),
-                user.getRoles()
-        );
+        String accessToken = jwtService.generateAccessToken(user).accessToken();
+        RefreshTokenResponse refreshToken = jwtService.generateRefreshToken(user);
 
+        user.setRefreshToken(refreshToken.refreshToken());
+        user.setRefreshTokenExpiry(refreshToken.refreshTokenExpiry());
 
-        String accessToken = jwtService.generateAccessToken(userRequest);
-        String refreshToken = jwtService.generateRefreshToken(userRequest);
-
-        user.setRefreshToken(refreshToken);
         authRepository.save(user);
 
-        return new AuthResponse(accessToken, refreshToken);
-
+        return new AuthResponse(accessToken, refreshToken.refreshToken());
     }
 
     @Override
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
+    public NewRefreshTokenResponse refreshToken(TokenRequest request) {
 
-        String refreshToken = request.refreshToken();
+        TokenRequest refreshToken = new TokenRequest(request.userToken());
 
-        if(!jwtService.isTokenValid(new TokenRequest(refreshToken))) {
-            throw new InvalidTokenException("Refresh token invalido");
-        }
+        // 1. Verificar que la firma sea valida y no este expirado
+        jwtService.validateTokenOrThrow(refreshToken);
 
-        String username = jwtService.extractUsername(new TokenRequest(refreshToken));
+        // 2. Verificar que sea un REFRESH token
+        jwtService.validateRefreshToken(refreshToken);
+
+        String username = jwtService.extractUsername(refreshToken);
         User user = authRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
 
-        UserRequest userRequest = new UserRequest(
-                user.getUsername(),
-                user.getRoles()
-        );
 
-        String newAccessToken = jwtService.generateAccessToken(userRequest);
-        String newRequestToken = jwtService.generateRefreshToken(userRequest);
+        // 3. Verificar que el refresh Token sea el mismo que el guardado
 
-        user.setRefreshToken(refreshToken);
+        if(!refreshToken.userToken().equals(user.getRefreshToken())) {
+            throw new InvalidTokenException("Refresh token no valido o revocado");
+        }
+
+
+        AccessTokenResponse newAccessToken = jwtService.generateAccessToken(user);
+        RefreshTokenResponse newRefreshToken = jwtService.generateRefreshToken(user);
+
+        user.setRefreshToken(newRefreshToken.refreshToken());
+        user.setRefreshTokenExpiry(newRefreshToken.refreshTokenExpiry());
         authRepository.save(user);
 
-        return new AuthResponse(newAccessToken, newRequestToken);
+        return new NewRefreshTokenResponse(newAccessToken.accessToken(),
+                newRefreshToken.refreshToken(),
+                newRefreshToken.refreshTokenExpiry()
+        );
     }
 
 
-    @Override
-    public List<UserResponse> allUsers() {
-        return authRepository
-                .findAll()
-                .stream()
-                .map(UserResponseMapper::toUserResponse)
-                .toList();
-    }
 }

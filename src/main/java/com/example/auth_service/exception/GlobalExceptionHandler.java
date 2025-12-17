@@ -3,71 +3,67 @@ package com.example.auth_service.exception;
 import com.example.auth_service.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private ApiError toApiError(HttpStatus status, String error, String message) {
-        return new ApiError(status, error, message);
+    private ApiError toApiError(HttpStatus status, String code, String message) {
+        return new ApiError(status, code, message);
     }
 
-
+    // 409 - El username ya existe
     @ExceptionHandler(UsernameAlreadyExistsException.class)
-    public ResponseEntity<ApiError> usernameAlreadyExistsException(UsernameAlreadyExistsException e) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
+    public ResponseEntity<ApiError> handleUsernameAlreadyExists(UsernameAlreadyExistsException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(toApiError(
                         HttpStatus.CONFLICT,
-                        "UserAlreadyExists",
+                        "USERNAME_ALREADY_EXISTS",
                         e.getMessage()
                 ));
     }
 
+    // 401 - Credenciales incorrectas
     @ExceptionHandler(WrongCredentialsException.class)
-    public ResponseEntity<ApiError> wrongPassowrdException (WrongCredentialsException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ApiError> handleWrongCredentials(WrongCredentialsException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(toApiError(
                         HttpStatus.UNAUTHORIZED,
-                        "InvalidCredentials",
+                        "INVALID_CREDENTIALS",
                         e.getMessage()
                 ));
     }
 
+    // 401 - Token inválido funcionalmente (no autorizado)
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ApiError> invalidTokenException (InvalidTokenException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ApiError> handleInvalidToken(InvalidTokenException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(toApiError(
                         HttpStatus.UNAUTHORIZED,
-                        "InvalidToken",
+                        "INVALID_TOKEN",
                         e.getMessage()
                 ));
     }
 
+    // 401 - Error técnico del JWT (expirado, firma inválida, etc.)
+    @ExceptionHandler(InvalidJwtTokenException.class)
+    public ResponseEntity<ApiError> handleInvalidJwtToken(InvalidJwtTokenException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(toApiError(
+                        HttpStatus.UNAUTHORIZED,
+                        "JWT_ERROR",
+                        e.getMessage()
+                ));
+    }
+
+    // 404 - Usuario no encontrado
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ApiError> userNotFoundException (UserNotFoundException e) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ApiError> handleUserNotFound(UserNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(toApiError(
                         HttpStatus.NOT_FOUND,
-                        "NotFound",
-                        e.getMessage()
-                ));
-    }
-
-
-    @ExceptionHandler(InvalidJwtTokenException.class)
-    public ResponseEntity<ApiError> invalidJwtTokenException (InvalidJwtTokenException e) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(toApiError(
-                        HttpStatus.UNAUTHORIZED,
-                        "InvalidToken",
+                        "USER_NOT_FOUND",
                         e.getMessage()
                 ));
     }

@@ -1,13 +1,10 @@
 package com.example.auth_service.service;
 
-import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.LoginRequest;
-import com.example.auth_service.dto.request.RefreshTokenRequest;
 import com.example.auth_service.dto.request.RegisterRequest;
+import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.dto.response.AuthResponse;
-import com.example.auth_service.dto.response.UserResponse;
-
-import java.util.List;
+import com.example.auth_service.dto.response.NewRefreshTokenResponse;
 
 public interface IAuthService {
 
@@ -15,7 +12,6 @@ public interface IAuthService {
 
     AuthResponse login(LoginRequest request);
 
-    AuthResponse refreshToken(RefreshTokenRequest request);
+    NewRefreshTokenResponse refreshToken(TokenRequest request);
 
-    List<UserResponse> allUsers();
 }

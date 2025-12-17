@@ -10,10 +10,13 @@ import java.util.Optional;
 
 public interface AuthRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
+    // Optional<User> findById(Long id);
+
     boolean existsByUsername(String username);
 
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u JOIN u.roles r WHERE r = :role")
     boolean existsByRole(@Param("role") Role role);
+
 
 
 }

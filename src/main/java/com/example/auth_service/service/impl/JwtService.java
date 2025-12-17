@@ -2,13 +2,14 @@ package com.example.auth_service.service.impl;
 
 import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.domain.model.Authority;
+import com.example.auth_service.domain.model.User;
 import com.example.auth_service.dto.request.TokenRequest;
 import com.example.auth_service.dto.request.UserRequest;
+import com.example.auth_service.dto.response.AccessTokenResponse;
+import com.example.auth_service.dto.response.RefreshTokenResponse;
 import com.example.auth_service.service.IJwtService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -34,15 +35,16 @@ public class JwtService implements IJwtService {
     private long refreshTokenExpiration;
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     @Override
-    public String generateAccessToken(UserRequest request) {
+    public AccessTokenResponse generateAccessToken(User user) {
 
-        return Jwts.builder()
-                .setSubject(request.username())
-                .claim("authorities", request.roles().stream()
+        String token = Jwts.builder()
+                .setSubject(user.getUsername())
+                .claim("authorities", user.getRoles().stream()
                         .flatMap(r -> r.getAuthorities().stream())
                         .map(Enum::name)
                         .toList())
@@ -52,18 +54,23 @@ public class JwtService implements IJwtService {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
 
+        return new AccessTokenResponse(token);
     }
 
     @Override
-    public String generateRefreshToken(UserRequest request) {
+    public RefreshTokenResponse generateRefreshToken(User user) {
 
-        return Jwts.builder()
-                .setSubject(request.username())
+        Instant expiry = Instant.now().plusSeconds(refreshTokenExpiration * 24 * 3600);
+
+        String token = Jwts.builder()
+                .setSubject(user.getUsername())
                 .claim("type", "REFRESH")
                 .setIssuedAt(new Date())
-                .setExpiration(Date.from(Instant.now().plusSeconds(refreshTokenExpiration * 24 * 3600)))
+                .setExpiration(Date.from(expiry))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+
+        return new RefreshTokenResponse(token, expiry);
     }
 
     @Override
@@ -72,12 +79,33 @@ public class JwtService implements IJwtService {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
-                    .parseClaimsJws(token.token());
+                    .parseClaimsJws(token.userToken());
             return true;
         } catch (JwtException e) {
             return false;
         }
     }
+
+    @Override
+    public void validateTokenOrThrow(TokenRequest token) throws JwtException {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token.userToken());
+        } catch (ExpiredJwtException e) {
+            throw new InvalidJwtTokenException("El token ha expirado");
+        } catch (UnsupportedJwtException e) {
+            throw new InvalidJwtTokenException("Formato de token no soportado");
+        } catch (MalformedJwtException e) {
+            throw new InvalidJwtTokenException("Token mal formado");
+        } catch (SignatureException e) {
+            throw new InvalidJwtTokenException("Firma de token inválida");
+        } catch (IllegalArgumentException e) {
+            throw new InvalidJwtTokenException("Token vacío o inválido");
+        }
+    }
+
 
     @Override
     public String extractUsername(TokenRequest token) {
@@ -90,7 +118,6 @@ public class JwtService implements IJwtService {
 
         List<String> authorities = extractClaims(token)
                 .get("authorities", List.class);
-
 
         if (authorities == null) {
             return Set.of();
@@ -139,7 +166,7 @@ public class JwtService implements IJwtService {
     public void validateAdminToken(TokenRequest token) throws InvalidJwtTokenException {
         Set<Authority> authorities = extractAuthorities(token);
 
-        if(!authorities.contains(Authority.READ_USERS)) {
+        if(!authorities.contains(Authority.ADMIN_AUTHORITY)) {
             throw new InvalidJwtTokenException("Se esperaba un ADMIN token");
         }
     }
@@ -149,7 +176,7 @@ public class JwtService implements IJwtService {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJws(token.token())
+                .parseClaimsJws(token.userToken())
                 .getBody();
     }
 }

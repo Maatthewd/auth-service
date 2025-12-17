@@ -1,27 +1,27 @@
 package com.example.auth_service.domain.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
 public class User implements UserDetails {
 
     @Id
@@ -43,8 +43,11 @@ public class User implements UserDetails {
     @Column(nullable = true, unique = true)
     private String refreshToken;
 
+    @Column(nullable = true)
+    private Instant refreshTokenExpiry;
+
     @Column(nullable = false)
-    private boolean enabled;
+    private Boolean enabled;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -55,17 +58,23 @@ public class User implements UserDetails {
     private LocalDateTime updatedAt;
 
 
-
-
     // UserDetails methods
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Convierte el enum Role en SimpleGrantedAuthority
-        return roles.stream()
-                    .map(role -> new SimpleGrantedAuthority(role.name()))
-                    .collect(Collectors.toSet());
+
+        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+
+        roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.name())));
+
+        roles.stream()
+                .flatMap(role -> role
+                        .getAuthorities()
+                        .stream())
+                .forEach(auth -> authorities.add(new SimpleGrantedAuthority(auth.name())));
+
+        return authorities;
     }
 
     @Override

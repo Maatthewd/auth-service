@@ -32,6 +32,7 @@ public class RegisterService implements IRegisterService {
                 .roles(Set.of(Role.ROLE_USER))
                 .enabled(true)
                 .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
         return authRepository.save(user);

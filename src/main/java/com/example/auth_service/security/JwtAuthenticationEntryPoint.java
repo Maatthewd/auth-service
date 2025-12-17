@@ -1,5 +1,6 @@
 package com.example.auth_service.security;
 
+import com.example.auth_service.domain.exception.InvalidJwtTokenException;
 import com.example.auth_service.exception.ApiError;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,28 +9,38 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 import java.io.IOException;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public void commence(
             HttpServletRequest request,
             HttpServletResponse response,
-            AuthenticationException authException) throws IOException, ServletException
+            AuthenticationException authException) throws IOException
     {
         response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setCharacterEncoding("UTF-8");
 
-        ApiError error = new ApiError(
-                HttpStatus.UNAUTHORIZED,
-                "InvalidToken",
-                authException.getMessage()
-        );
+        ApiError error;
 
-        ObjectMapper mapper = new ObjectMapper();
-        response.getWriter().write(mapper.writeValueAsString(error));
+        if (authException instanceof InvalidJwtTokenException ex) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            error = new ApiError(HttpStatus.UNAUTHORIZED, "INVALID_JWT", ex.getMessage());
+
+        }
+
+        else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            error = new ApiError(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", authException.getMessage());
+        }
+
+        objectMapper.writeValue(response.getWriter(), error);
     }
 }

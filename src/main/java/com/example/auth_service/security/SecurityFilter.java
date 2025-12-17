@@ -1,31 +1,30 @@
-package com.example.auth_service.config;
+package com.example.auth_service.security;
 
-import com.example.auth_service.domain.model.Authority;
-import com.example.auth_service.security.JWTAuthenticationFilter;
-import com.example.auth_service.security.JwtAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
+public class SecurityFilter {
 
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
+    @Autowired
+    private JwtAccessDeniedHandler accessDeniedHandler;
+
     @Bean
-    public SecurityFilterChain securityFilterChain(
+    public org.springframework.security.web.SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JWTAuthenticationFilter jwtFilter
+            JWTAuthenticationFilter jwtFilter,
+            JwtExceptionHandlerFilter exceptionHandlerFilter
     ) throws Exception {
 
         http
@@ -53,12 +52,21 @@ public class SecurityConfig {
                         headers.frameOptions(frame -> frame.disable())
                 )
 
-                // JWT Filter (NO bloquea si no hay token)
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
+
+                // Filtro de excepciones ANTES del filtro JWT
                 .addFilterBefore(
+                        exceptionHandlerFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+
+                // JWT Filter DESPUÉS del filtro de excepciones
+                .addFilterAfter(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
-
 
         return http.build();
     }
