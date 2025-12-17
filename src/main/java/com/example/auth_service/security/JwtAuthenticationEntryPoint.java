@@ -34,7 +34,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             error = new ApiError(HttpStatus.UNAUTHORIZED, "INVALID_JWT", ex.getMessage());
 
-        } // Aca se pueden agregar mas excepciones que puedan saltar en el filtro con un else-if
+        }
 
         else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

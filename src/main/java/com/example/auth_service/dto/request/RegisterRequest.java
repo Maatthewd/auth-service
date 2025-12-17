@@ -7,7 +7,7 @@ public record RegisterRequest(
 
         @NotNull String username,
 
-        @NotNull @Size(min = 6, max=15)
+        @NotNull @Size(min = 6, max=18)
         String password
 ) {
 }

@@ -2,6 +2,8 @@ package com.example.auth_service.service;
 
 
 import com.example.auth_service.dto.request.CreateUserRequest;
+import com.example.auth_service.dto.request.UpdateSelfRequest;
+import com.example.auth_service.dto.request.UpdateUserRequest;
 import com.example.auth_service.dto.response.MeResponse;
 import com.example.auth_service.dto.response.UserResponse;
 import org.springframework.security.core.Authentication;
@@ -16,7 +18,9 @@ public interface IUserService {
 
     UserResponse createUser(CreateUserRequest request);
 
-    UserResponse updateUser();
+    UserResponse updateUser(Long id, UpdateUserRequest request);
+
+    UserResponse updateSelf(Authentication authentication, UpdateSelfRequest request);
 
     void deleteUser(Long id);
 

@@ -47,7 +47,7 @@ public class User implements UserDetails {
     private Instant refreshTokenExpiry;
 
     @Column(nullable = false)
-    private boolean enabled;
+    private Boolean enabled;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

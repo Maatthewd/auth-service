@@ -12,18 +12,29 @@ public enum Role {
             Authority.DELETE_SELF
             )),
 
+    ROLE_MANAGER(Set.of(
+            Authority.READ_SELF,
+            Authority.UPDATE_SELF,
+            Authority.DELETE_SELF,
+
+            Authority.READ_USERS,
+            Authority.UPDATE_USERS
+    )),
+
     ROLE_ADMIN(Set.of(
             Authority.ADMIN_AUTHORITY,
+
+            Authority.READ_SELF,
+            Authority.UPDATE_SELF,
+            Authority.DELETE_SELF,
 
             Authority.READ_USERS,
             Authority.CREATE_USERS,
             Authority.UPDATE_USERS,
-            Authority.DELETE_USERS,
-
-            Authority.READ_SELF,
-            Authority.UPDATE_SELF,
-            Authority.DELETE_SELF
+            Authority.DELETE_USERS
     ));
+
+
 
     private final Set<Authority> authorities;
 

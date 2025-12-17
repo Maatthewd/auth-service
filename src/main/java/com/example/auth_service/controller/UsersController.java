@@ -2,10 +2,13 @@ package com.example.auth_service.controller;
 
 
 import com.example.auth_service.dto.request.CreateUserRequest;
+import com.example.auth_service.dto.request.UpdateSelfRequest;
+import com.example.auth_service.dto.request.UpdateUserRequest;
 import com.example.auth_service.dto.request.UserRequest;
 import com.example.auth_service.dto.response.MeResponse;
 import com.example.auth_service.dto.response.UserResponse;
 import com.example.auth_service.service.impl.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +34,26 @@ public class UsersController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAuthority('UPDATE_SELF')")
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateSelf(Authentication authentication,
+                                                   @Valid @RequestBody UpdateSelfRequest request){
+
+        UserResponse response = userService.updateSelf(authentication, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PreAuthorize("hasAuthority('DELETE_SELF')")
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteSelf(Authentication authentication) {
+
+        userService.deleteSelf(authentication);
+        return ResponseEntity.noContent().build();
+    }
+
+
+
+
     @PreAuthorize("hasAuthority('READ_USERS')")
     @GetMapping()
     public ResponseEntity<List<UserResponse>> allUsers() {
@@ -48,6 +71,14 @@ public class UsersController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PreAuthorize("hasAuthority('UPDATE_USERS')")
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+
+        UserResponse response = userService.updateUser(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @PreAuthorize("hasAuthority('DELETE_USERS')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
@@ -56,13 +87,6 @@ public class UsersController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAuthority('DELETE_SELF')")
-    @DeleteMapping("/me")
-    public ResponseEntity<?> deleteSelf(Authentication authentication) {
-
-        userService.deleteSelf(authentication);
-        return ResponseEntity.noContent().build();
-    }
 
 
 }
